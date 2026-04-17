@@ -1,25 +1,18 @@
-FROM --platform=$BUILDPLATFORM nixos/nix:latest AS dev
+FROM oven/bun:1-slim AS dev
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git postgresql-client curl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
-ENV NIX_CONFIG="experimental-features = nix-command flakes"
-ENV PATH="/nix/var/nix/profiles/dev/bin:${PATH}"
-
-WORKDIR /tmp/dev
-COPY flake.nix flake.lock ./
-RUN nix profile add --impure --accept-flake-config --profile /nix/var/nix/profiles/dev .#default
-
-FROM --platform=$BUILDPLATFORM dev AS builder
-ENV GOOS=linux
-ENV GOARCH=amd64
+FROM dev AS install
 WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-COPY Taskfile.yml ./
-COPY . .
-RUN task build
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile 2>/dev/null || bun install
+COPY tsconfig.json ./
+COPY src ./src
 
-FROM scratch
-USER 1000
-COPY --from=builder /nix/var/nix/profiles/dev/etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=builder /app/build/app /app
+FROM oven/bun:distroless
+WORKDIR /app
+COPY --from=install /app .
+USER bun
 EXPOSE 8080
-ENTRYPOINT ["/app"]
+ENTRYPOINT ["bun", "run", "src/index.ts"]
