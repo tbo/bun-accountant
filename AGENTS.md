@@ -21,7 +21,7 @@ Do not read files that are unrelated to the current task. Do not re-read files w
 - **Runtime**: Bun with ElysiaJS. TypeScript in strict mode.
 - **Database**: PostgreSQL via `DATABASE_URL` (required).
 - **DB access**: Use Drizzle with Drizzle Kit migrations. Keep queries explicit and SQL-like.
-- **Auth**: Use Better Auth for provider-agnostic OAuth/OIDC. Auth0 is the current provider; keep Auth0-specific assumptions out of app code.
+- **Auth**: Use Better Auth for provider-agnostic OAuth/OIDC. Auth0 is the current provider; keep Auth0-specific assumptions out of app code. Use Better Auth's Drizzle adapter for auth/session tables; use Drizzle directly for app domain data.
 - **Testing**: Bun's built-in test runner (`bun test`). Prefer integration tests.
 - **Frontend**: Hypermedia layer is still undecided; keep both HTMX and Hotwire Turbo viable.
 - **Styling**: Styling system is still undecided; keep both Pico CSS and daisyUI viable.
