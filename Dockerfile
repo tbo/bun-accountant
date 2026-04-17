@@ -2,6 +2,7 @@ FROM oven/bun:1-slim AS dev
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git postgresql-client curl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
+RUN bun install -g typescript-language-server typescript
 
 FROM dev AS install
 WORKDIR /app
