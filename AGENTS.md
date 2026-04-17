@@ -20,9 +20,11 @@ Do not read files that are unrelated to the current task. Do not re-read files w
 
 - **Runtime**: Bun with ElysiaJS. TypeScript in strict mode.
 - **Database**: PostgreSQL via `DATABASE_URL` (required).
+- **DB access**: Use Drizzle with Drizzle Kit migrations. Keep queries explicit and SQL-like.
 - **Testing**: Bun's built-in test runner (`bun test`). Prefer integration tests.
 - **Frontend**: Hypermedia layer is still undecided; keep both HTMX and Hotwire Turbo viable.
 - **Styling**: Styling system is still undecided; keep both Pico CSS and daisyUI viable.
+- **SQLite**: Optional only; keep PostgreSQL as the primary database.
 - Containerized via Docker (`Dockerfile`) and Docker Compose (`compose.yaml`). The agent runs **inside** the `dev` service — all development (tasks, tools, database access) is isolated to that container. The working directory is bind-mounted from the host (`${PWD}:${PWD}`).
 
 **KEEP CURRENT**: Any code changes that invalidate these instructions MUST trigger immediate updates to this file.
