@@ -1,5 +1,10 @@
+import { html } from "@elysiajs/html"
 import { Elysia } from "elysia"
 
-new Elysia()
-  .get("/", () => "ok")
-  .listen(8080)
+import { HomePage } from "./page"
+
+export const app = new Elysia()
+  .use(html())
+  .get("/", HomePage)
+
+if (import.meta.main) app.listen(8080)
