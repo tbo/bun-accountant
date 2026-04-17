@@ -22,6 +22,7 @@ Do not read files that are unrelated to the current task. Do not re-read files w
 - **Database**: PostgreSQL via `DATABASE_URL` (required).
 - **Testing**: Bun's built-in test runner (`bun test`). Prefer integration tests.
 - **Frontend**: Hypermedia layer is still undecided; keep both HTMX and Hotwire Turbo viable.
+- **Styling**: Styling system is still undecided; keep both Pico CSS and daisyUI viable.
 - Containerized via Docker (`Dockerfile`) and Docker Compose (`compose.yaml`). The agent runs **inside** the `dev` service — all development (tasks, tools, database access) is isolated to that container. The working directory is bind-mounted from the host (`${PWD}:${PWD}`).
 
 **KEEP CURRENT**: Any code changes that invalidate these instructions MUST trigger immediate updates to this file.
