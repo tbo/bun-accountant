@@ -1,0 +1,33 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.4.12/schema.json",
+	"files": {
+		"includes": ["src/**", "package.json", "tsconfig.json", "biome.json"]
+	},
+	"formatter": {
+		"enabled": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"correctness": {
+				"noUnusedImports": "error",
+				"noUnusedVariables": "error"
+			},
+			"style": {
+				"useImportType": "off"
+			}
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["src/**/*.tsx"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUnusedImports": "off"
+					}
+				}
+			}
+		}
+	]
+}

@@ -1,15 +1,15 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "types": ["bun"],
-    "strict": true,
-    "skipLibCheck": true,
-    "noEmit": true,
-    "jsx": "react",
-    "jsxFactory": "Html.createElement",
-    "jsxFragmentFactory": "Html.Fragment"
-  },
-  "include": ["src"]
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"types": ["bun"],
+		"strict": true,
+		"skipLibCheck": true,
+		"noEmit": true,
+		"jsx": "react",
+		"jsxFactory": "Html.createElement",
+		"jsxFragmentFactory": "Html.Fragment"
+	},
+	"include": ["src"]
 }

@@ -1,16 +1,23 @@
 {
-  "name": "bun-accountant",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "bun run --watch src/index.ts",
-    "start": "bun run src/index.ts"
-  },
-  "dependencies": {
-    "@elysiajs/html": "^1.4.0",
-    "elysia": "^1.4"
-  },
-  "devDependencies": {
-    "@types/bun": "latest"
-  }
+	"name": "bun-accountant",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "bun run --watch src/index.ts",
+		"start": "bun run src/index.ts",
+		"format": "biome check --write .",
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test",
+		"verify": "bun run format && bun run typecheck && bun run test"
+	},
+	"dependencies": {
+		"@elysiajs/html": "^1.4.0",
+		"elysia": "^1.4"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.12",
+		"@types/bun": "latest",
+		"typescript": "^6.0.3"
+	}
 }
