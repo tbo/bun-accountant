@@ -6,10 +6,6 @@ import { requestLogger } from "./log"
 const originalWrite = process.stdout.write.bind(process.stdout)
 const chunks: string[] = []
 
-const flush = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 0))
-}
-
 const records = () =>
   chunks
     .join("")
@@ -23,20 +19,28 @@ afterEach(() => {
   chunks.length = 0
 })
 
-const captureLogs = () => {
+const captureLogs = (count: number) => {
+  let resolve = () => {}
+  const done = new Promise<void>((r) => {
+    resolve = r
+  })
+
   process.stdout.write = ((chunk: string | Uint8Array) => {
     chunks.push(String(chunk))
+    if (chunks.length === count) resolve()
     return true
   }) as typeof process.stdout.write
+
+  return done
 }
 
 test("request logger logs request json and returns x-request-id", async () => {
-  captureLogs()
+  const done = captureLogs(1)
 
   const app = new Elysia().use(requestLogger).get("/", () => "ok")
   const response = await app.handle(new Request("http://localhost/", { headers: { "x-request-id": "req-1" } }))
 
-  await flush()
+  await done
 
   expect(response.status).toBe(200)
   expect(response.headers.get("x-request-id")).toBe("req-1")
@@ -56,14 +60,14 @@ test("request logger logs request json and returns x-request-id", async () => {
 })
 
 test("request logger logs error and request json", async () => {
-  captureLogs()
+  const done = captureLogs(2)
 
   const app = new Elysia().use(requestLogger).get("/boom", () => {
     throw new Error("boom")
   })
   const response = await app.handle(new Request("http://localhost/boom"))
 
-  await flush()
+  await done
 
   expect(response.status).toBe(500)
   expect(response.headers.get("x-request-id")).toBeTruthy()

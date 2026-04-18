@@ -1,5 +1,3 @@
-import { writeSync } from "node:fs"
-
 import { Elysia } from "elysia"
 
 const errorStatus = {
@@ -9,52 +7,9 @@ const errorStatus = {
   VALIDATION: 422,
 } satisfies Record<string, number>
 
-let buffer = ""
-let draining = false
-let scheduled = false
-
-const flush = () => {
-  scheduled = false
-  if (draining || !buffer) return
-  const chunk = buffer
-  buffer = ""
-  if (!process.stdout.write(chunk)) {
-    draining = true
-    process.stdout.once("drain", () => {
-      draining = false
-      flush()
-    })
-  }
-}
-
-const flushSync = () => {
-  if (!buffer) return
-  const chunk = buffer
-  buffer = ""
-  writeSync(process.stdout.fd, chunk)
-}
-
-const schedule = () => {
-  if (scheduled || draining) return
-  scheduled = true
-  queueMicrotask(flush)
-}
-
 const write = (record: Record<string, unknown>) => {
-  buffer += `${JSON.stringify(record)}\n`
-  schedule()
+  process.stdout.write(`${JSON.stringify(record)}\n`)
 }
-
-for (const signal of ["SIGINT", "SIGTERM"] as const) {
-  const handler = () => {
-    flushSync()
-    process.off(signal, handler)
-    process.kill(process.pid, signal)
-  }
-  process.once(signal, handler)
-}
-
-process.once("beforeExit", flushSync)
 
 const pathOf = (url: string) => new URL(url).pathname
 const statusOf = (status: unknown, fallback: number) =>
