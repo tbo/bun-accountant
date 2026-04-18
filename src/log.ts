@@ -29,17 +29,12 @@ export const requestLogger = new Elysia({ name: "request-logger" })
     set.headers["x-request-id"] = requestId
     return { requestId, startTime: performance.now() }
   })
-  .onError(({ code, error, request, requestId, set, startTime }) => {
+  .onError(({ error, requestId }) => {
     write({
       time: new Date().toISOString(),
       level: "error",
       event: "error",
       requestId,
-      method: request.method,
-      url: request.url,
-      path: pathOf(request.url),
-      status: statusOf(set.status, errorStatus[code] ?? 500),
-      responseTime: Math.round(performance.now() - startTime),
       error: errorOf(error),
     })
   })

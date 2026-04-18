@@ -34,10 +34,11 @@ const captureLogs = (count: number) => {
   return done
 }
 
-test("request logger logs request json and returns x-request-id", async () => {
+test("request logger logs request json when mounted before a route plugin", async () => {
   const done = captureLogs(1)
 
-  const app = new Elysia().use(requestLogger).get("/", () => "ok")
+  const routes = new Elysia().get("/", () => "ok")
+  const app = new Elysia().use(requestLogger).use(routes)
   const response = await app.handle(new Request("http://localhost/", { headers: { "x-request-id": "req-1" } }))
 
   await done
@@ -84,7 +85,9 @@ test("request logger logs error and request json", async () => {
   expect(requestLog?.requestId).toBe(response.headers.get("x-request-id"))
   expect(errorLog?.level).toBe("error")
   expect(requestLog?.level).toBe("info")
-  expect(errorLog?.status).toBe(500)
+  expect(errorLog?.status).toBeUndefined()
+  expect(errorLog?.method).toBeUndefined()
+  expect(errorLog?.path).toBeUndefined()
   expect(requestLog?.status).toBe(500)
   expect((errorLog?.error as { message?: string })?.message).toBe("boom")
 })

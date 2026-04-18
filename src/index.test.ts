@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test"
 
-import { app } from "./index"
+import { getApp } from "./index"
 
 test("GET / renders hello world", async () => {
-  const response = await app.handle(new Request("http://localhost/"))
+  const response = await getApp().handle(new Request("http://localhost/"))
 
   expect(response.status).toBe(200)
   expect(response.headers.get("content-type")).toContain("text/html")
