@@ -23,7 +23,6 @@ Do not read files that are unrelated to the current task. Do not re-read files w
 - **DB access**: Use Drizzle with Drizzle Kit migrations. Keep queries explicit and SQL-like.
 - **Auth**: Use Better Auth for provider-agnostic OAuth/OIDC. Auth0 is the current provider; keep Auth0-specific assumptions out of app code. Use Better Auth's Drizzle adapter for auth/session tables; use Drizzle directly for app domain data.
 - **Logging**: A local logging middleware is integrated. It logs HTTP requests and errors as JSON to stdout.
-- **Tooling**: Use Biome for formatting and linting, and `tsc --noEmit` for type checks. `bun run verify` is the mandatory verification command and formats code before running type checks and tests. Knip is a potential future addition for dead-code and dependency hygiene.
 - **Testing**: Bun's built-in test runner (`bun test`). Prefer integration tests.
 - **Frontend**: Hypermedia layer is still undecided; keep both HTMX and Hotwire Turbo viable.
 - **Styling**: Styling system is still undecided; keep both Pico CSS and daisyUI viable.
