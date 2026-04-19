@@ -10,6 +10,8 @@
 
 Do not read files that are unrelated to the current task. Do not re-read files whose contents you already have.
 
+- **Product direction**: `SPEC.md` is the north-star product document. Keep plans and implementation aligned with it.
+
 # Development Guidelines
 
 - **Brevity**: Strive for terse code; excessive lines are a negative quality. Use modern language features.
