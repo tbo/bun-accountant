@@ -4,7 +4,15 @@
 		"includes": ["src/**", "package.json", "tsconfig.json", "biome.json"]
 	},
 	"formatter": {
-		"enabled": true
+		"enabled": true,
+		"lineWidth": 120
+	},
+	"javascript": {
+		"formatter": {
+			"arrowParentheses": "asNeeded",
+			"expand": "never",
+			"lineWidth": 120
+		}
 	},
 	"linter": {
 		"enabled": true,

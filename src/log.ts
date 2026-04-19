@@ -1,22 +1,14 @@
 import { Elysia } from "elysia";
 
-const errorStatus = {
-	INVALID_COOKIE_SIGNATURE: 400,
-	NOT_FOUND: 404,
-	PARSE: 400,
-	VALIDATION: 422,
-} satisfies Record<string, number>;
+const errorStatus = { INVALID_COOKIE_SIGNATURE: 400, NOT_FOUND: 404, PARSE: 400, VALIDATION: 422 } satisfies Record<
+	string,
+	number
+>;
 
 type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
-type LogRecord = Record<string, unknown> & {
-	error?: unknown;
-	level?: unknown;
-	time?: unknown;
-};
+type LogRecord = Record<string, unknown> & { error?: unknown; level?: unknown; time?: unknown };
 
-const write = (record: Record<string, unknown>) => {
-	process.stdout.write(`${JSON.stringify(record)}\n`);
-};
+const write = (record: Record<string, unknown>) => process.stdout.write(`${JSON.stringify(record)}\n`);
 
 const statusOf = (status: unknown, fallback: number) =>
 	typeof status === "number"
@@ -44,14 +36,11 @@ export const log = {
 
 export const requestLogger = new Elysia({ name: "request-logger" })
 	.derive(({ request, set }) => {
-		const requestId =
-			request.headers.get("x-request-id") ?? crypto.randomUUID();
+		const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
 		set.headers["x-request-id"] = requestId;
 		return { requestId, startTime: performance.now() };
 	})
-	.onError(({ error, requestId }) => {
-		log.error({ event: "error", requestId, error });
-	})
+	.onError(({ error, requestId }) => log.error({ event: "error", requestId, error }))
 	.onAfterResponse(({ path, request, requestId, set, startTime }) => {
 		log.info({
 			event: "request",

@@ -12,7 +12,7 @@ const records = () =>
 		.trim()
 		.split("\n")
 		.filter(Boolean)
-		.map((line) => JSON.parse(line) as Record<string, unknown>);
+		.map(line => JSON.parse(line) as Record<string, unknown>);
 
 afterEach(() => {
 	process.stdout.write = originalWrite;
@@ -21,7 +21,7 @@ afterEach(() => {
 
 const captureLogs = (count: number) => {
 	let resolve = () => {};
-	const done = new Promise<void>((r) => {
+	const done = new Promise<void>(r => {
 		resolve = r;
 	});
 
@@ -53,9 +53,7 @@ test("request logger logs request json when mounted before a route plugin", asyn
 
 	const routes = new Elysia().get("/", () => "ok");
 	const app = new Elysia().use(requestLogger).use(routes);
-	const response = await app.handle(
-		new Request("http://localhost/", { headers: { "x-request-id": "req-1" } }),
-	);
+	const response = await app.handle(new Request("http://localhost/", { headers: { "x-request-id": "req-1" } }));
 
 	await done;
 
@@ -116,10 +114,10 @@ test("request logger logs error and the app keeps handling requests", async () =
 	expect(okResponse.status).toBe(200);
 
 	const output = records();
-	const errorLog = output.find((record) => record.event === "error");
-	const requestLogs = output.filter((record) => record.event === "request");
-	const failedRequestLog = requestLogs.find((record) => record.status === 500);
-	const okRequestLog = requestLogs.find((record) => record.status === 200);
+	const errorLog = output.find(record => record.event === "error");
+	const requestLogs = output.filter(record => record.event === "request");
+	const failedRequestLog = requestLogs.find(record => record.status === 500);
+	const okRequestLog = requestLogs.find(record => record.status === 200);
 
 	expect(output).toHaveLength(3);
 
@@ -127,9 +125,7 @@ test("request logger logs error and the app keeps handling requests", async () =
 	expect(failedRequestLog).toBeTruthy();
 	expect(okRequestLog).toBeTruthy();
 	expect(errorLog?.requestId).toBe(errorResponse.headers.get("x-request-id"));
-	expect(failedRequestLog?.requestId).toBe(
-		errorResponse.headers.get("x-request-id"),
-	);
+	expect(failedRequestLog?.requestId).toBe(errorResponse.headers.get("x-request-id"));
 	expect(errorLog?.level).toBe("error");
 	expect(failedRequestLog?.level).toBe("info");
 	expect(okRequestLog?.level).toBe("info");

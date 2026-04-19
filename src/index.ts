@@ -8,12 +8,8 @@ import { HomePage } from "./page";
 export const getApp = () => new Elysia().use(html()).get("/", HomePage);
 
 if (import.meta.main) {
-	process.on("uncaughtException", (error) => {
-		log.error({ event: "uncaughtException", error });
-	});
-	process.on("unhandledRejection", (error) => {
-		log.error({ event: "unhandledRejection", error });
-	});
+	process.on("uncaughtException", error => log.error({ event: "uncaughtException", error }));
+	process.on("unhandledRejection", error => log.error({ event: "unhandledRejection", error }));
 
 	new Elysia()
 		.use(requestLogger)
