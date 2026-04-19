@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
 import { Elysia } from "elysia";
 
-import { requestLogger } from "./log";
+import { log, requestLogger } from "./log";
 
 const originalWrite = process.stdout.write.bind(process.stdout);
 const chunks: string[] = [];
@@ -33,6 +33,20 @@ const captureLogs = (count: number) => {
 
 	return done;
 };
+
+test("log writes the provided level and serializes errors", async () => {
+	const done = captureLogs(1);
+	log.warn({ event: "custom", error: new Error("boom") });
+
+	await done;
+
+	const [record] = records();
+
+	expect(record.time).toBeTruthy();
+	expect(record.level).toBe("warn");
+	expect(record.event).toBe("custom");
+	expect((record.error as { message?: string })?.message).toBe("boom");
+});
 
 test("request logger logs request json when mounted before a route plugin", async () => {
 	const done = captureLogs(1);

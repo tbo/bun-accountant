@@ -7,6 +7,13 @@ const errorStatus = {
 	VALIDATION: 422,
 } satisfies Record<string, number>;
 
+type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
+type LogRecord = Record<string, unknown> & {
+	error?: unknown;
+	level?: unknown;
+	time?: unknown;
+};
+
 const write = (record: Record<string, unknown>) => {
 	process.stdout.write(`${JSON.stringify(record)}\n`);
 };
@@ -21,19 +28,19 @@ const errorOf = (error: unknown) =>
 	error instanceof Error
 		? { name: error.name, message: error.message, stack: error.stack }
 		: { message: String(error) };
+const recordOf = ({ error, level: _, time: __, ...record }: LogRecord) =>
+	error === undefined ? record : { ...record, error: errorOf(error) };
+const at = (level: LogLevel) => (record: LogRecord) =>
+	write({ time: new Date().toISOString(), level, ...recordOf(record) });
 
-export const logError = (
-	event: string,
-	error: unknown,
-	record: Record<string, unknown> = {},
-) =>
-	write({
-		time: new Date().toISOString(),
-		level: "error",
-		event,
-		...record,
-		error: errorOf(error),
-	});
+export const log = {
+	trace: at("trace"),
+	debug: at("debug"),
+	info: at("info"),
+	warn: at("warn"),
+	error: at("error"),
+	fatal: at("fatal"),
+};
 
 export const requestLogger = new Elysia({ name: "request-logger" })
 	.derive(({ request, set }) => {
@@ -43,12 +50,10 @@ export const requestLogger = new Elysia({ name: "request-logger" })
 		return { requestId, startTime: performance.now() };
 	})
 	.onError(({ error, requestId }) => {
-		logError("error", error, { requestId });
+		log.error({ event: "error", requestId, error });
 	})
 	.onAfterResponse(({ path, request, requestId, set, startTime }) => {
-		write({
-			time: new Date().toISOString(),
-			level: "info",
+		log.info({
 			event: "request",
 			requestId,
 			method: request.method,
