@@ -27,7 +27,7 @@ Do not read files that are unrelated to the current task. Do not re-read files w
 - **Logging**: A local logging middleware is integrated. It logs HTTP requests and errors as JSON to stdout.
 - **Testing**: Bun's built-in test runner (`bun test`). Prefer integration tests.
 - **Frontend**: Hypermedia layer is still undecided; keep both HTMX and Hotwire Turbo viable.
-- **Styling**: Styling system is still undecided; keep both Pico CSS and daisyUI viable.
+- **Styling**: Pico CSS is currently self-hosted via a Bun-built stylesheet in the base layout as a trial run, not a final decision. Styling is still undecided; keep both Pico CSS and daisyUI viable.
 - **SQLite**: Optional only; keep PostgreSQL as the primary database.
 - Containerized via Docker (`Dockerfile`) and Docker Compose (`compose.yaml`). The agent runs **inside** the `dev` service — all development (tasks, tools, database access) is isolated to that container. The working directory is bind-mounted from the host (`${PWD}:${PWD}`).
 

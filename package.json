@@ -3,16 +3,19 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "bun run --watch src/index.ts",
-		"start": "bun run src/index.ts",
+		"dev": "bun run build:css && bun run --watch src/index.ts",
+		"start": "bun run build:css && bun run src/index.ts",
+		"build:css": "bun build src/styles.css --outdir public/assets",
 		"format": "biome check --write .",
 		"lint": "biome check .",
 		"typecheck": "tsc --noEmit",
 		"test": "bun test",
-		"verify": "bun run format && bun run typecheck && bun run test"
+		"verify": "bun run format && bun run build:css && bun run typecheck && bun run test"
 	},
 	"dependencies": {
 		"@elysiajs/html": "^1.4.0",
+		"@elysiajs/static": "^1.4.9",
+		"@picocss/pico": "^2.1.1",
 		"elysia": "^1.4"
 	},
 	"devDependencies": {

@@ -6,9 +6,12 @@ const Page = ({ title, children }: { title: string; children: Children }) => (
 		<head>
 			<meta charset="utf-8" />
 			<meta name="viewport" content="width=device-width, initial-scale=1" />
+			<link rel="stylesheet" href="/assets/styles.css" />
 			<title>{title}</title>
 		</head>
-		<body>{children}</body>
+		<body>
+			<main class="container">{children}</main>
+		</body>
 	</html>
 );
 
