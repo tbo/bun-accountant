@@ -11,7 +11,6 @@ const write = (record: Record<string, unknown>) => {
 	process.stdout.write(`${JSON.stringify(record)}\n`);
 };
 
-const pathOf = (url: string) => new URL(url).pathname;
 const statusOf = (status: unknown, fallback: number) =>
 	typeof status === "number"
 		? status
@@ -23,6 +22,19 @@ const errorOf = (error: unknown) =>
 		? { name: error.name, message: error.message, stack: error.stack }
 		: { message: String(error) };
 
+export const logError = (
+	event: string,
+	error: unknown,
+	record: Record<string, unknown> = {},
+) =>
+	write({
+		time: new Date().toISOString(),
+		level: "error",
+		event,
+		...record,
+		error: errorOf(error),
+	});
+
 export const requestLogger = new Elysia({ name: "request-logger" })
 	.derive(({ request, set }) => {
 		const requestId =
@@ -31,15 +43,9 @@ export const requestLogger = new Elysia({ name: "request-logger" })
 		return { requestId, startTime: performance.now() };
 	})
 	.onError(({ error, requestId }) => {
-		write({
-			time: new Date().toISOString(),
-			level: "error",
-			event: "error",
-			requestId,
-			error: errorOf(error),
-		});
+		logError("error", error, { requestId });
 	})
-	.onAfterResponse(({ request, requestId, set, startTime }) => {
+	.onAfterResponse(({ path, request, requestId, set, startTime }) => {
 		write({
 			time: new Date().toISOString(),
 			level: "info",
@@ -47,7 +53,7 @@ export const requestLogger = new Elysia({ name: "request-logger" })
 			requestId,
 			method: request.method,
 			url: request.url,
-			path: pathOf(request.url),
+			path,
 			status: statusOf(set.status, 200),
 			responseTime: Math.round(performance.now() - startTime),
 		});

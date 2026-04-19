@@ -62,34 +62,67 @@ test("request logger logs request json when mounted before a route plugin", asyn
 	expect(typeof log.responseTime).toBe("number");
 });
 
-test("request logger logs error and request json", async () => {
-	const done = captureLogs(2);
+test("request logger logs live server requests", async () => {
+	const done = captureLogs(1);
+	const app = new Elysia()
+		.use(requestLogger)
+		.get("/", () => "ok")
+		.listen(0);
 
-	const app = new Elysia().use(requestLogger).get("/boom", () => {
-		throw new Error("boom");
-	});
-	const response = await app.handle(new Request("http://localhost/boom"));
+	try {
+		const response = await fetch(`http://127.0.0.1:${app.server?.port}/`);
+
+		await done;
+
+		expect(response.status).toBe(200);
+		expect(await response.text()).toBe("ok");
+		expect(records()).toHaveLength(1);
+		expect(records()[0]?.path).toBe("/");
+	} finally {
+		app.stop();
+	}
+});
+
+test("request logger logs error and the app keeps handling requests", async () => {
+	const done = captureLogs(3);
+
+	const app = new Elysia()
+		.use(requestLogger)
+		.get("/", () => "ok")
+		.get("/boom", () => {
+			throw new Error("boom");
+		});
+	const errorResponse = await app.handle(new Request("http://localhost/boom"));
+	const okResponse = await app.handle(new Request("http://localhost/"));
 
 	await done;
 
-	expect(response.status).toBe(500);
-	expect(response.headers.get("x-request-id")).toBeTruthy();
+	expect(errorResponse.status).toBe(500);
+	expect(errorResponse.headers.get("x-request-id")).toBeTruthy();
+	expect(okResponse.status).toBe(200);
 
 	const output = records();
 	const errorLog = output.find((record) => record.event === "error");
-	const requestLog = output.find((record) => record.event === "request");
+	const requestLogs = output.filter((record) => record.event === "request");
+	const failedRequestLog = requestLogs.find((record) => record.status === 500);
+	const okRequestLog = requestLogs.find((record) => record.status === 200);
 
-	expect(output).toHaveLength(2);
+	expect(output).toHaveLength(3);
 
 	expect(errorLog).toBeTruthy();
-	expect(requestLog).toBeTruthy();
-	expect(errorLog?.requestId).toBe(response.headers.get("x-request-id"));
-	expect(requestLog?.requestId).toBe(response.headers.get("x-request-id"));
+	expect(failedRequestLog).toBeTruthy();
+	expect(okRequestLog).toBeTruthy();
+	expect(errorLog?.requestId).toBe(errorResponse.headers.get("x-request-id"));
+	expect(failedRequestLog?.requestId).toBe(
+		errorResponse.headers.get("x-request-id"),
+	);
 	expect(errorLog?.level).toBe("error");
-	expect(requestLog?.level).toBe("info");
+	expect(failedRequestLog?.level).toBe("info");
+	expect(okRequestLog?.level).toBe("info");
 	expect(errorLog?.status).toBeUndefined();
 	expect(errorLog?.method).toBeUndefined();
 	expect(errorLog?.path).toBeUndefined();
-	expect(requestLog?.status).toBe(500);
+	expect(failedRequestLog?.status).toBe(500);
+	expect(okRequestLog?.path).toBe("/");
 	expect((errorLog?.error as { message?: string })?.message).toBe("boom");
 });
