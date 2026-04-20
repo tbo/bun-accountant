@@ -1,13 +1,28 @@
-import { expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 
 import { getApp } from "./index";
 
-test("GET / renders hello world", async () => {
-	const response = await getApp().handle(new Request("http://localhost/"));
-	const body = await response.text();
+describe("/", () => {
+	it("shows an empty state when there are no bookings", async () => {
+		const response = await getApp({ listBookings: async () => [] }).handle(new Request("http://localhost/"));
+		const text = await response.text();
 
-	expect(response.status).toBe(200);
-	expect(response.headers.get("content-type")).toContain("text/html");
-	expect(body).toContain('href="/assets/styles.css"');
-	expect(body).toContain("<h1>Hello, world!</h1>");
+		expect(response.status).toBe(200);
+		expect(text).toContain("<h1>Bookings</h1>");
+		expect(text).toContain("<table>");
+		expect(text).toContain("No bookings yet.");
+	});
+
+	it("renders bookings in the table", async () => {
+		const response = await getApp({
+			listBookings: async () => [
+				{ id: 1, bookedOn: "2026-04-02", description: "OPENAI", amountCents: -1747, status: "draft" },
+			],
+		}).handle(new Request("http://localhost/"));
+		const text = await response.text();
+
+		expect(text).toContain("2026-04-02");
+		expect(text).toContain("OPENAI");
+		expect(text).toContain("Draft");
+	});
 });
