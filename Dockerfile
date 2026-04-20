@@ -1,4 +1,4 @@
-FROM oven/bun:1-slim AS base dev
+FROM oven/bun:1-slim AS base
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git postgresql-client curl ca-certificates \
   && rm -rf /var/lib/apt/lists/*

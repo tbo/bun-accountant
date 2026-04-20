@@ -15,6 +15,13 @@
       "when": 1776685006949,
       "tag": "0001_curious_gorilla_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776714179237,
+      "tag": "0002_familiar_wither",
+      "breakpoints": true
     }
   ]
 }
