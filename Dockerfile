@@ -1,6 +1,6 @@
 FROM oven/bun:1-slim AS base
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git postgresql-client curl ca-certificates \
+    git postgresql-client curl ca-certificates ripgrep \
   && rm -rf /var/lib/apt/lists/*
 
 FROM base AS dev
