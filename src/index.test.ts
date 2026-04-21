@@ -1,20 +1,9 @@
 import { describe, expect, it } from "bun:test";
 
-import { authLoginPath, signInRequestOf } from "./auth";
+import { authLoginPath } from "./auth";
 import { getApp } from "./index";
 
 describe("auth", () => {
-	it("sets origin on the internal auth start request when cookies are present", () => {
-		const request = signInRequestOf(
-			new Request(`http://localhost${authLoginPath}?callbackURL=%2F`, { headers: { cookie: "session=abc" } }),
-			"/",
-		);
-
-		expect(request.headers.get("cookie")).toBe("session=abc");
-		expect(request.headers.get("origin")).toBe("http://localhost");
-		expect(request.headers.get("content-type")).toBe("application/json");
-	});
-
 	it("starts sign-in on the server and sanitizes the callback URL", async () => {
 		let callbackURL = "";
 		const response = await getApp({
@@ -51,6 +40,7 @@ describe("/", () => {
 
 		expect(response.status).toBe(302);
 		expect(response.headers.get("location")).toBe(`http://localhost${authLoginPath}?callbackURL=%2F`);
+		expect(response.headers.get("cache-control")).toBe("no-store");
 	});
 
 	it("shows an empty state for authenticated requests when there are no bookings", async () => {
