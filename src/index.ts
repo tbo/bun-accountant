@@ -16,19 +16,16 @@ type Dependencies = {
 	startSignIn?: (request: Request, callbackURL: string) => Promise<Response>;
 };
 
-const sessionOf = (headers: Headers, resolveSession?: Dependencies["getSession"]) =>
-	resolveSession ? resolveSession(headers) : auth.api.getSession({ headers });
-
-const callbackPathOf = (request: Request) => {
-	const url = new URL(request.url);
-	return `${url.pathname}${url.search}`;
-};
-
-const loginUrlOf = (request: Request) =>
-	new URL(`${authLoginPath}?callbackURL=${encodeURIComponent(callbackPathOf(request))}`, request.url).toString();
+const sessionOf = (headers: Headers, getSession?: Dependencies["getSession"]) =>
+	getSession ? getSession(headers) : auth.api.getSession({ headers });
 
 const sanitizeCallbackUrl = (callbackURL: string | null) =>
 	callbackURL?.startsWith("/") && !callbackURL.startsWith("//") ? callbackURL : "/";
+
+const loginUrlOf = (request: Request) => {
+	const { pathname, search } = new URL(request.url);
+	return new URL(`${authLoginPath}?callbackURL=${encodeURIComponent(`${pathname}${search}`)}`, request.url).toString();
+};
 
 const withNoStore = (response: Response) => {
 	const headers = new Headers(response.headers);
@@ -50,57 +47,55 @@ export const signInRequestOf = (request: Request, callbackURL: string) => {
 };
 
 const startSignIn = async (request: Request, callbackURL: string) => {
-	const authResponse = await auth.handler(signInRequestOf(request, callbackURL));
+	const response = await auth.handler(signInRequestOf(request, callbackURL));
+	if (!response.ok) return response;
 
-	if (!authResponse.ok) return authResponse;
+	const { url } = (await response.json()) as { url?: string };
+	if (!url) throw new Error("Missing auth redirect URL");
 
-	const body = (await authResponse.json()) as { url?: string };
-	if (typeof body.url !== "string") throw new Error("Missing auth redirect URL");
-
-	const redirectHeaders = new Headers({ location: body.url });
-	for (const value of authResponse.headers.getSetCookie()) redirectHeaders.append("set-cookie", value);
-	return new Response(null, { status: 302, headers: redirectHeaders });
+	const headers = new Headers({ location: url });
+	for (const value of response.headers.getSetCookie()) headers.append("set-cookie", value);
+	return new Response(null, { status: 302, headers });
 };
 
-const getPublicApp = ({ getSession: resolveSession, startSignIn: start }: Dependencies) =>
-	new Elysia().use(html()).get(authLoginPath, async ({ request }) => {
-		const callbackURL = sanitizeCallbackUrl(new URL(request.url).searchParams.get("callbackURL"));
-		const session = await sessionOf(request.headers, resolveSession);
-		if (session) return withNoStore(Response.redirect(new URL(callbackURL, request.url).toString(), 302));
-		return withNoStore(await (start ?? startSignIn)(request, callbackURL));
-	});
+const listBookingsOf = (listBookings?: Dependencies["listBookings"]) =>
+	listBookings
+		? listBookings()
+		: db
+				.select({
+					id: bookings.id,
+					bookedOn: bookings.bookedOn,
+					description: bookings.description,
+					amountCents: bookings.amountCents,
+					status: bookings.status,
+				})
+				.from(bookings)
+				.orderBy(desc(bookings.bookedOn), desc(bookings.id));
 
-const getSecureApp = ({ listBookings, getSession }: Dependencies) =>
+const protectedApp = ({ listBookings, getSession }: Dependencies) =>
 	new Elysia()
 		.use(html())
 		.onBeforeHandle(async ({ request }) => {
-			const session = await sessionOf(request.headers, getSession);
-			if (!session) return Response.redirect(loginUrlOf(request), 302);
+			if (await sessionOf(request.headers, getSession)) return;
+			return Response.redirect(loginUrlOf(request), 302);
 		})
-		.get("/", async () => {
-			const rows = await (listBookings
-				? listBookings()
-				: db
-						.select({
-							id: bookings.id,
-							bookedOn: bookings.bookedOn,
-							description: bookings.description,
-							amountCents: bookings.amountCents,
-							status: bookings.status,
-						})
-						.from(bookings)
-						.orderBy(desc(bookings.bookedOn), desc(bookings.id)));
+		.get("/", async () => HomePage({ bookings: await listBookingsOf(listBookings) }));
 
-			return HomePage({ bookings: rows });
-		});
-
-const getAuthApi = () =>
+const authApi = () =>
 	new Elysia()
 		.get("/api/auth/*", ({ request }) => auth.handler(request))
 		.post("/api/auth/*", ({ request }) => auth.handler(request));
 
 export const getApp = (dependencies: Dependencies = {}) =>
-	new Elysia().use(getPublicApp(dependencies)).use(getSecureApp(dependencies));
+	new Elysia()
+		.get(authLoginPath, async ({ request }) => {
+			const callbackURL = sanitizeCallbackUrl(new URL(request.url).searchParams.get("callbackURL"));
+			if (await sessionOf(request.headers, dependencies.getSession)) {
+				return withNoStore(Response.redirect(new URL(callbackURL, request.url).toString(), 302));
+			}
+			return withNoStore(await (dependencies.startSignIn ?? startSignIn)(request, callbackURL));
+		})
+		.use(protectedApp(dependencies));
 
 if (import.meta.main) {
 	process.on("uncaughtException", error => log.error({ event: "uncaughtException", error }));
@@ -109,7 +104,7 @@ if (import.meta.main) {
 	new Elysia()
 		.use(requestLogger)
 		.use(staticPlugin({ assets: "public", prefix: "/" }))
-		.use(getAuthApi())
+		.use(authApi())
 		.use(getApp())
 		.listen(8080);
 }
