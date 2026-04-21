@@ -72,20 +72,6 @@ const listBookingsOf = (listBookings?: Dependencies["listBookings"]) =>
 				.from(bookings)
 				.orderBy(desc(bookings.bookedOn), desc(bookings.id));
 
-const protectedApp = ({ listBookings, getSession }: Dependencies) =>
-	new Elysia()
-		.use(html())
-		.onBeforeHandle(async ({ request }) => {
-			if (await sessionOf(request.headers, getSession)) return;
-			return Response.redirect(loginUrlOf(request), 302);
-		})
-		.get("/", async () => HomePage({ bookings: await listBookingsOf(listBookings) }));
-
-const authApi = () =>
-	new Elysia()
-		.get("/api/auth/*", ({ request }) => auth.handler(request))
-		.post("/api/auth/*", ({ request }) => auth.handler(request));
-
 export const getApp = (dependencies: Dependencies = {}) =>
 	new Elysia()
 		.get(authLoginPath, async ({ request }) => {
@@ -95,7 +81,12 @@ export const getApp = (dependencies: Dependencies = {}) =>
 			}
 			return withNoStore(await (dependencies.startSignIn ?? startSignIn)(request, callbackURL));
 		})
-		.use(protectedApp(dependencies));
+		.use(html())
+		.onBeforeHandle(async ({ request }) => {
+			if (await sessionOf(request.headers, dependencies.getSession)) return;
+			return Response.redirect(loginUrlOf(request), 302);
+		})
+		.get("/", async () => HomePage({ bookings: await listBookingsOf(dependencies.listBookings) }));
 
 if (import.meta.main) {
 	process.on("uncaughtException", error => log.error({ event: "uncaughtException", error }));
@@ -104,7 +95,8 @@ if (import.meta.main) {
 	new Elysia()
 		.use(requestLogger)
 		.use(staticPlugin({ assets: "public", prefix: "/" }))
-		.use(authApi())
+		.get("/api/auth/*", ({ request }) => auth.handler(request))
+		.post("/api/auth/*", ({ request }) => auth.handler(request))
 		.use(getApp())
 		.listen(8080);
 }
