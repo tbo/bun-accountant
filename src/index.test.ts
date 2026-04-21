@@ -1,9 +1,9 @@
 import { describe, expect, it } from "bun:test";
 
-import { authLoginPath } from "./auth";
-import { getApp, signInRequestOf } from "./index";
+import { authLoginPath, signInRequestOf } from "./auth";
+import { getApp } from "./index";
 
-describe("/", () => {
+describe("auth", () => {
 	it("sets origin on the internal auth start request when cookies are present", () => {
 		const request = signInRequestOf(
 			new Request(`http://localhost${authLoginPath}?callbackURL=%2F`, { headers: { cookie: "session=abc" } }),
@@ -43,7 +43,9 @@ describe("/", () => {
 		expect(response.headers.get("location")).toBe("http://localhost/reports");
 		expect(response.headers.get("cache-control")).toBe("no-store");
 	});
+});
 
+describe("/", () => {
 	it("redirects unauthenticated requests to sign in", async () => {
 		const response = await getApp({ getSession: async () => null }).handle(new Request("http://localhost/"));
 
