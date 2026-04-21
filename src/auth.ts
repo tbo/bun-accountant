@@ -22,6 +22,7 @@ const auth = betterAuth({
 	basePath: authBasePath,
 	secret: requireEnv("COOKIE_SECRET"),
 	database: drizzleAdapter(db, { provider: "pg" }),
+	account: { storeStateStrategy: "cookie" },
 	plugins: [
 		genericOAuth({
 			config: [
