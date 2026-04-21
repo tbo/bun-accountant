@@ -16,6 +16,7 @@ Do not read files that are unrelated to the current task. Do not re-read files w
 
 - **Brevity**: Strive for terse code; excessive lines are a negative quality. Use modern language features.
 - **YAGNI**: Implement only what is explicitly requested. No speculative functionality.
+- **No premature abstractions**: Prefer direct composition, explicit data flow, and local reasoning. Introduce helpers, layers, services, repositories, or interfaces only for real reuse, clear boundaries, or substantial complexity. Avoid pass-through abstractions; let them emerge from proven patterns.
 - **NO COMMENTS**: Do not add comments to code.
 
 # Code Style & Conventions
