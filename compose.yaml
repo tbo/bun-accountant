@@ -1,8 +1,6 @@
 services:
   db:
     image: postgres:18
-    ports:
-      - "127.0.0.1:5432:5432"
     volumes:
       - db_data:/var/lib/postgresql
     environment:
@@ -35,7 +33,7 @@ services:
   pgweb:
     image: sosedoff/pgweb
     ports:
-      - "127.0.0.1:8081:8081"
+      - "127.0.0.1::8081"
     depends_on:
       db:
         condition: service_healthy
